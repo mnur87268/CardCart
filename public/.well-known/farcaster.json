@@ -12,7 +12,7 @@
     "splashImageUrl": "https://card-cart.vercel.app/assets/splash.png",
     "splashBackgroundColor": "#020617",
     "subtitle": "Grocery list as cards",
-    "description": "A grocery list that behaves like a deck of index cards. See one item at a time: tap to mark bought (it slides away) or swipe to skip.",
+    "description": "A grocery list as index cards. See one item at a time. Tap to mark bought or swipe to skip.",
     "primaryCategory": "shopping",
     "tags": [
       "fun",
@@ -21,7 +21,7 @@
     ],
     "heroImageUrl": "https://card-cart.vercel.app/assets/hero.png",
     "ogTitle": "Cardcart",
-    "ogDescription": "A grocery list that behaves like a deck of index cards. See one item at a time: tap to mark bought (it slides away) or swipe to skip.",
+    "ogDescription": "A grocery list as index cards. See one item at a time. Tap to mark bought or swipe to skip.",
     "ogImageUrl": "https://card-cart.vercel.app/assets/hero.png",
     "screenshotUrls": [
       "https://card-cart.vercel.app/assets/hero.png"
