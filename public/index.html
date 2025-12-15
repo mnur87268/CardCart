@@ -1,0 +1,242 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>Card Cart</title>
+
+  <!-- Open Graph -->
+  <meta property="og:title" content="Cardcart" />
+  <meta property="og:description" content="A grocery list that behaves like a deck of index cards. See one item at a time: tap to mark bought (it slides away) or swipe to skip." />
+  <meta property="og:image" content="https://example.com/assets/hero.png" />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="https://example.com/" />
+
+  <!-- Farcaster Mini App -->
+  <meta name="fc:miniapp" content="{&quot;version&quot;:&quot;1&quot;,&quot;imageUrl&quot;:&quot;https://example.com/assets/embed-3x2.png&quot;,&quot;button&quot;:{&quot;title&quot;:&quot;Open&quot;,&quot;action&quot;:{&quot;type&quot;:&quot;launch_frame&quot;,&quot;url&quot;:&quot;https://example.com/&quot;}},&quot;splashImageUrl&quot;:&quot;https://example.com/assets/splash.png&quot;,&quot;splashBackgroundColor&quot;:&quot;#020617&quot;}" />
+
+  <!-- Backwards compatible Frame -->
+  <meta name="fc:frame" content="vNext" />
+  <meta name="fc:frame:image" content="https://example.com/assets/embed-3x2.png" />
+  <meta name="fc:frame:button:1" content="Open" />
+  <meta name="fc:frame:button:1:action" content="launch_frame" />
+  <meta name="fc:frame:button:1:target" content="https://example.com/" />
+  <meta name="fc:frame:splash_image" content="https://example.com/assets/splash.png" />
+  <meta name="fc:frame:splash_background_color" content="#020617" />
+
+  <style>
+    :root {
+      --desk: #6C4C34;
+      --wood2: #7B573D;
+      --paper: #FCF7EB;
+      --ink: #1C1C20;
+      --shadow: rgba(20,12,8,.45);
+      --red: #E84B4B;
+      --green: #38AA78;
+      --blue: #4483EB;
+      --r: 26px;
+    }
+    html, body {
+      height: 100%;
+      margin: 0;
+      background:
+        linear-gradient(90deg, rgba(255,255,255,.06) 0%, rgba(255,255,255,0) 14%, rgba(0,0,0,.06) 28%, rgba(255,255,255,0) 42%, rgba(255,255,255,.05) 56%, rgba(0,0,0,.06) 70%, rgba(255,255,255,0) 84%, rgba(255,255,255,.04) 100%),
+        radial-gradient(900px 700px at 24% 20%, rgba(255,255,255,.10) 0%, rgba(255,255,255,0) 55%),
+        linear-gradient(180deg, var(--wood2), var(--desk));
+      color: var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+    }
+    #app {
+      min-height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+      box-sizing: border-box;
+    }
+    .wrap { width: min(640px, 100%); }
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      margin-bottom: 14px;
+    }
+    .name {
+      font-size: 28px;
+      font-weight: 950;
+      letter-spacing: -0.03em;
+      line-height: 1.05;
+      color: rgba(255,255,255,.92);
+      text-shadow: 0 10px 30px rgba(0,0,0,.35);
+    }
+    .sub {
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 700;
+      color: rgba(255,255,255,.72);
+      letter-spacing: .04em;
+      text-transform: lowercase;
+    }
+    .pill {
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .18em;
+      padding: 10px 12px;
+      border-radius: 999px;
+      border: 1px solid rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.86);
+      box-shadow: 0 18px 50px var(--shadow);
+      user-select: none;
+    }
+    .pill.mini {
+      border-color: rgba(56,170,120,.35);
+      box-shadow: 0 0 0 8px rgba(56,170,120,.12) inset, 0 18px 50px var(--shadow);
+    }
+    .table {
+      border-radius: var(--r);
+      padding: 14px;
+      background: rgba(0,0,0,.10);
+      border: 1px solid rgba(255,255,255,.12);
+      box-shadow: 0 22px 80px var(--shadow);
+    }
+    .stack {
+      position: relative;
+      height: min(48vh, 360px);
+      display: grid;
+      place-items: center;
+      margin-bottom: 12px;
+      user-select: none;
+      touch-action: pan-y;
+    }
+    .card {
+      position: absolute;
+      width: min(520px, 100%);
+      height: 100%;
+      border-radius: 22px;
+      background: var(--paper);
+      border: 1px solid rgba(28,28,32,.10);
+      box-shadow: 0 24px 60px rgba(0,0,0,.35);
+      padding: 16px 16px 14px;
+      box-sizing: border-box;
+      transform: translateY(calc(var(--layer) * 10px)) rotate(calc(var(--layer) * -1deg));
+      transition: transform .14s ease, opacity .14s ease;
+    }
+    .line {
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(232,75,75,.55);
+      margin-bottom: 12px;
+    }
+    .item {
+      font-size: 56px;
+      font-weight: 950;
+      letter-spacing: -0.05em;
+      line-height: 1;
+      color: var(--ink);
+      margin-top: 8px;
+    }
+    @media (max-width: 420px) { .item { font-size: 48px; } }
+    .actions {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-top: 18px;
+    }
+    .act {
+      border: 1px solid rgba(28,28,32,.14);
+      border-radius: 18px;
+      padding: 14px 12px;
+      font-weight: 950;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      cursor: pointer;
+      background: rgba(255,255,255,.55);
+    }
+    .act.ok { background: rgba(56,170,120,.16); border-color: rgba(56,170,120,.40); }
+    .act.skip { background: rgba(68,131,235,.14); border-color: rgba(68,131,235,.38); }
+    .micro {
+      margin-top: 14px;
+      font-size: 12px;
+      font-weight: 850;
+      letter-spacing: .10em;
+      text-transform: uppercase;
+      color: rgba(28,28,32,.55);
+    }
+    .doneAll { display: grid; place-items: center; text-align: center; }
+    .doneAll .big { font-size: 44px; }
+    .doneAll .hint { margin-top: 8px; font-size: 13px; font-weight: 750; color: rgba(28,28,32,.62); }
+    .hud {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+    .stat {
+      border: 1px solid rgba(255,255,255,.12);
+      background: rgba(0,0,0,.10);
+      border-radius: 16px;
+      padding: 10px 12px;
+      color: rgba(255,255,255,.90);
+    }
+    .k { font-size: 11px; font-weight: 950; letter-spacing: .18em; text-transform: uppercase; color: rgba(255,255,255,.70); }
+    .v { margin-top: 6px; font-size: 18px; font-weight: 950; }
+    .composer {
+      display: grid;
+      grid-template-columns: 1fr auto auto;
+      gap: 10px;
+      align-items: center;
+      margin-top: 10px;
+    }
+    .input {
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.90);
+      outline: none;
+      font-weight: 750;
+    }
+    .btn {
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(255,255,255,.14);
+      color: rgba(255,255,255,.92);
+      font-weight: 950;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+    }
+    .ghost {
+      padding: 12px 12px;
+      border-radius: 16px;
+      border: 1px solid rgba(255,255,255,.16);
+      background: rgba(0,0,0,.18);
+      color: rgba(255,255,255,.82);
+      font-weight: 900;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+    .toast {
+      margin-top: 12px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: 950;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: rgba(255,255,255,.72);
+      padding: 12px 10px;
+      border-radius: 999px;
+      border: 1px dashed rgba(255,255,255,.18);
+      background: rgba(0,0,0,.18);
+    }
+    .wrap.pop .toast { animation: pop .35s ease; }
+    @keyframes pop { 0%{transform:scale(1)} 30%{transform:scale(1.03)} 100%{transform:scale(1)} }
+  </style>
+</head>
+<body>
+  <div id="app"></div>
+  <script type="module" src="./script.js"></script>
+</body>
+</html>
